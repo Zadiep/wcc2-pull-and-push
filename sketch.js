@@ -1,6 +1,7 @@
 let canvas;
 let button;
 
+//food setting
 let food = 0;
 let feeding = false;
 
@@ -8,6 +9,15 @@ let hungry = 0;
 let full = 1;
 let tamaState = hungry;
 
+//emotion setting
+let emotionValue = 0;
+let touching = false;
+
+let sad = 0;
+let happy = 1;
+let tamaEmotion = sad;
+
+//basic setting
 let tamaX;
 let tamaY;
 let tamaDiam;
@@ -22,6 +32,8 @@ function setup() {
   tamaDiam = width/6;
 
   addGUI();
+
+  
 }
 
 function draw() {
@@ -29,10 +41,11 @@ function draw() {
   
   //Drawing
   noStroke();
-
-  //manage state of Tama
+  
+  //manage food state of Tama
   if(tamaState == hungry){
     fill(255);
+    
 
     //manage switching to full state
     if(tamaDiam > width/4){
@@ -51,13 +64,38 @@ function draw() {
     }
   }
 
-  //draw Tama and closed mouth
+  //manage emotion state of Tama
+  if(tamaEmotion == sad){
+    fill(100);
+    tamaX = width/2;
+    tamaY = height-tamaDiam/4;
+
+    //manage switching to happy state
+    if(tamaDiam > width/4){
+      tamaEmotion = happy;
+    }
+
+  }else if(tamaEmotion == happy){
+    //happy color
+    fill(255,100,0);
+
+    //manage returning to sad state
+    if(tamaDiam > width/5){
+      if(frameCount % 5 == 0) tamaDiam--; // reduce 
+    }else{
+      tamaState = sad;
+    }
+  }
+
+  //draw Tama and closed mouth and eyes
   circle(tamaX,tamaY,tamaDiam);
   fill(0);
   let mouthOffset = tamaDiam/2;
-  rect(tamaX-mouthOffset/2,tamaY,mouthOffset,3);
+  rect(tamaX-mouthOffset/2,tamaY+mouthOffset/3,mouthOffset,3);
+  ellipse(tamaX,tamaY-mouthOffset/5,20,25);
 
 
+  //food
   if(food > 0 ){
 
     //Tama Eat
@@ -75,6 +113,25 @@ function draw() {
     button.html("FEED");
     button.removeClass("inactive");
   }
+
+  //emotion
+  if(emotionValue > 0 ){
+
+    //Tama Eat
+    if(frameCount % 30 < 15 && tamaEmotion == sad){
+      touch();
+    }
+
+    //draw tears&smile???
+    fill(100);
+    circle(tamaX,tamaY+food,food);
+
+  }else if(touching){
+    //manage button state, only do this once IF the button is inactive
+    touching = false;
+    buttonB.html("TOUCH");
+    buttonB.removeClass("inactive");
+  }
   
 
 }
@@ -91,12 +148,22 @@ function eatFood(){
 
 }
 
+function touch(){
+
+  //draw smile
+  fill(0);
+  circle(tamaX,tamaY,tamaDiam/2);
+
+  //reduce food & grow Tama
+  emotionValue --;
+  tamaDiam++;
+
+}
+
 function addGUI()
 {
-
   //add a button
   button = createButton("FEED");
-
   button.addClass("button");
 
   //Add the play button to the parent gui HTML element
@@ -105,6 +172,15 @@ function addGUI()
   //Adding a mouse pressed event listener to the button 
   button.mousePressed(handleButtonPress); 
 
+
+  //touch
+  //add a button
+  buttonB = createButton("TOUCH");
+  buttonB.addClass("button");
+  //Add the play button to the parent gui HTML element
+  buttonB.parent("gui-container");
+  //Adding a mouse pressed event listener to the button 
+  buttonB.mousePressed(touchButtonPress); 
 }
 
 function handleButtonPress()
@@ -120,4 +196,33 @@ function handleButtonPress()
     }
     
 }
+
+function touchButtonPress()
+{
+  if(!touching){
+    //set emotionValue to random value
+    emotionValue = random(20,60);
+    touching = true;
+
+    //manage button state
+    buttonB.html("TOUCHING");
+    buttonB.addClass("inactive");
+  }
+}
+
+function tear(){
+  push();
+  fill(0);
+  stroke(0);
+  strokeWeight(5);
+  let mouthOffset = tamaDiam/2;
+  arc(tamaX,tamaY-mouthOffset/5,20,25,PI,OPEN);
+  line(tamaX,tamaX+20,tamaY,tamaY+20);
+  pop();
+}
+
+function smilingMouth(){
+ 
+}
+
 
